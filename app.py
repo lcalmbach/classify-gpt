@@ -40,7 +40,7 @@ In the demo mode, you can explore the application without providing any
 inputs. A sample dataset is provided, allowing you to experience the 
 classification process firsthand. However, please note that in the 
 current version, the number of records that can be classified is currently 
-limited to {MAX_RECORDS} reandomly selected from the full dataset. This 
+limited to {MAX_RECORDS} randomly selected from the full dataset. This 
 limitation is implemented to manage costs effectively.
 
 With {APP_NAME}, you can streamline the categorization process and 
