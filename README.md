@@ -15,9 +15,16 @@ You can then run the classification process by clicking the 'Classify' button. T
 
 ## Run
 
-You can run the app locally by running the following command:
+You can clone and run the app locally with the following commands:
 
-```streamlit run app.py```
+```
+>git clone https://github.com/lcalmbach/classify-gpt.git
+>cd classify-gpt
+>pyython -m venv env
+>env\scripts\activate
+>pip install requirements.txt
+>streamlit run app.py
+```
 
 The app will run on localhost:8501.
 

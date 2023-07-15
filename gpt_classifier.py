@@ -1,36 +1,9 @@
-import streamlit as st
-import pandas as pd
-import json
 import openai
-import os
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
-import socket
 
-LOCAL_HOST = "liestal"
-
-
-def get_var(varname: str) -> str:
-    """
-    Retrieves the value of a given environment variable or secret from the Streamlit configuration.
-
-    If the current host is the local machine (according to the hostname), the environment variable is looked up in the system's environment variables.
-    Otherwise, the secret value is fetched from Streamlit's secrets dictionary.
-
-    Args:
-        varname (str): The name of the environment variable or secret to retrieve.
-
-    Returns:
-        The value of the environment variable or secret, as a string.
-
-    Raises:
-        KeyError: If the environment variable or secret is not defined.
-    """
-    if socket.gethostname().lower() == LOCAL_HOST:
-        return os.environ[varname]
-    else:
-        return st.secrets[varname]
+from helper import get_var
 
 
 class Classifier:
@@ -45,6 +18,7 @@ class Classifier:
     Methods:
         run(): Runs the GPT-3 API on each row of the input DataFrame and categorizes the text according to the user's instructions.
     """
+
     def __init__(self, df_texts, dict_categories):
         df_texts["result"] = [[] for _ in range(len(df_texts.index))]
         self.df_texts = df_texts
@@ -68,10 +42,9 @@ class Classifier:
         openai.api_key = get_var("OPENAI_API_KEY")
         llm = ChatOpenAI(temperature=0.5)
         prompt = ChatPromptTemplate.from_template(
-            """Weise die Antwort ###{answer}### einer der folgenden Kategorien zu: [{category_list_expression}]
+            """Weise die Antwort ###{answer}### einer bis drei der folgenden Kategorien zu: [{category_list_expression}]
 
-            Gib eine Liste von Ids der zugehörigen Kategorien zurück im Format: 
-            [7, 1]
+            Formattiere die Antwort wie folgt: Gib eine Liste von Ids der zugehörigen Kategorien zurück, Beipiel: [7, 1]
             """
         )
         chain = LLMChain(llm=llm, prompt=prompt)
