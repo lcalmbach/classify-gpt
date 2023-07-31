@@ -2,17 +2,13 @@ import streamlit as st
 import pandas as pd
 from streamlit_lottie import st_lottie
 import requests
-from helper import (
-    get_used_languages,
-    init_lang_dict_complete,
-    get_lang
-)
-from gpt_classifier import Classifier
+from helper import get_used_languages, init_lang_dict_complete, get_lang
+import gpt_classifier
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "Lukas Calmbach"
 __author_email__ = "lcalmbach@gmail.com"
-VERSION_DATE = "2023-07-14"
+VERSION_DATE = "2023-07-31"
 APP_NAME = "ClassifyGPT"
 GIT_REPO = "https://github.com/lcalmbach/classify-gpt"
 
@@ -32,6 +28,7 @@ def get_app_info():
     created_by = lang["created_by"]
     powered_by = lang["powered_by"]
     version = lang["version"]
+    translation = lang["text_translation"]
 
     info = f"""<div style="background-color:powderblue; padding: 10px;border-radius: 15px;">
     <small>{created_by} <a href="mailto:{__author_email__}">{__author__}</a><br>
@@ -50,7 +47,8 @@ def get_app_info():
     {version}: {__version__} ({VERSION_DATE})<br>
     {powered_by} <a href="https://streamlit.io/">Streamlit</a> and 
     <a href="https://platform.openai.com/">OpenAI API</a><br> 
-    <a href="{GIT_REPO}">git-repo</a>
+    <a href="{GIT_REPO}">git-repo</a><br> 
+    {translation} <a href="https://lcalmbach-gpt-translate-app-i49g8c.streamlit.app/">PolyglotGPT</a>
     """
     return info
 
@@ -111,6 +109,27 @@ def get_uploaded_files():
         dic_categories = dict(
             zip(list(df_categories["id"]), list(df_categories["category"]))
         )
+    return df_texts, dic_categories
+
+
+def get_user_input():
+    """
+    Prompts the user to enter text and categories, and returns them as a
+    DataFrame and a dictionary.
+
+    Returns:
+        df_texts (pd.DataFrame): A DataFrame containing the user-entered text.
+        dic_categories (dict): A dictionary mapping category indices to
+        category names.
+    """
+    text = st.text_area(lang["text_to_classify"])
+    categories = st.text_area(lang["categories_csv"])
+
+    df_texts = pd.DataFrame({"id": [1], "text": [text]})
+    df_texts.set_index("id", inplace=True)
+
+    categories = categories.split(",")
+    dic_categories = {i + 1: item for i, item in enumerate(categories)}
     return df_texts, dic_categories
 
 
@@ -195,14 +214,14 @@ def refresh_lang():
 @st.cache_data()
 def get_lottie():
     """Performs a GET request to fetch JSON data from a specified URL.
-    
+
     Returns:
-        tuple: A tuple containing the JSON response and a flag indicating the 
+        tuple: A tuple containing the JSON response and a flag indicating the
         success of the request.
-    
+
     Raises:
-        requests.exceptions.RequestException: If an error occurs during the 
-        GET request. ValueError: If an error occurs while parsing the JSON 
+        requests.exceptions.RequestException: If an error occurs during the
+        GET request. ValueError: If an error occurs while parsing the JSON
         response.
     """
     ok = True
@@ -219,14 +238,69 @@ def get_lottie():
     return r, ok
 
 
+def get_settings():
+    """
+    Prompts the user to enter model poarameters and returns them as a dictionary.
+    Default values are dinfed in the gpt_classifier module.
+
+    Returns:
+        settings (dict): A dictionary containing the user-entered settings.
+    """
+    settings = {}
+    with st.sidebar.expander(lang["llm_settings"]):
+        settings["model"] = st.selectbox("model", gpt_classifier.MODEL_OPTIONS)
+        settings["temperature"] = st.slider(
+            label="Temperature",
+            value=gpt_classifier.DEFAULT_TEMP,
+            min_value=0.0,
+            max_value=1.0,
+            step=0.1,
+            help=lang["help_temperature"],
+        )
+        settings["top_p"] = st.slider(
+            "top_p",
+            value=gpt_classifier.DEAFULT_TOP_P,
+            min_value=0.0,
+            max_value=1.0,
+            step=0.1,
+            help=lang["help_top_p"],
+        )
+        settings["max_tokens"] = st.slider(
+            "Maximum tokens",
+            value=gpt_classifier.DEFAULT_MAX_TOKENS,
+            min_value=0,
+            max_value=4096,
+            step=1,
+            help=lang["help_max_tokens"],
+        )
+        settings["frequency_penalty"] = st.slider(
+            "Frequency penalty",
+            value=gpt_classifier.DEFAULT_FREQUENCY_PENALTY,
+            min_value=-2.0,
+            max_value=2.0,
+            step=0.1,
+            help=lang["help_presence_penalty"],
+        )
+        settings["presence_penalty"] = st.slider(
+            "Presence penalty",
+            value=gpt_classifier.DEFAULT_PRESENCE_PENALTY,
+            min_value=-2.0,
+            max_value=2.0,
+            step=0.1,
+            help=lang["help_frequency_penalty"],
+        )
+
+    return settings
+
+
 def main() -> None:
     """
-    This function runs an app that classifies text data. Depending on the user's 
-    input option, it retrieves data from a demo or an uploaded file. Then, 
-    randomly selects a fixed number of records from the dataframe provided using 
-    record_selection function. The selected dataframe and dictionary of categories 
-    are previewed on the screen. If the user presses classify, the function runs the 
-    Classifier class on the selected dataframe, returns a response dataframe, and 
+    This function runs an app that classifies text data. Depending on the user's
+    input option, it retrieves data from a demo or an uploaded file. Then,
+    randomly selects a fixed number of records from the dataframe provided using
+    record_selection function. The selected dataframe and dictionary of categories
+    are previewed on the screen. If the user presses classify, the function runs the
+    Classifier class on the selected dataframe, returns a response dataframe, and
     offers the user the option to download the dataframe to a CSV file.
     """
     st.header(APP_NAME)
@@ -252,22 +326,27 @@ def main() -> None:
     display_language_selection()
     show_info()
     mode_options = lang["mode-options"]
+    llm_settings = get_settings()
 
-    sel_mode = st.radio("Mode", options=mode_options)
+    sel_mode = st.radio(lang["mode"], options=mode_options)
     if mode_options.index(sel_mode) == 0:
         df_texts, dic_categories = get_demo_data()
-    else:
+    if mode_options.index(sel_mode) == 1:
         df_texts, dic_categories = get_uploaded_files()
+    if mode_options.index(sel_mode) == 2:
+        df_texts, dic_categories = get_user_input()
 
     if not df_texts.empty and dic_categories:
-        if MAX_RECORDS > 0:
+        if MAX_RECORDS > 0 and len(df_texts) > MAX_RECORDS:
             df_texts = record_selection(df_texts, MAX_RECORDS)
 
         preview_input(df_texts, dic_categories)
 
         if not df_texts.empty and dic_categories:
             if st.button(lang["classify"]):
-                classifier = Classifier(df_texts, dic_categories)
+                classifier = gpt_classifier.Classifier(
+                    df_texts, dic_categories, llm_settings
+                )
                 with st.spinner(lang["classifying"]):
                     response_df = classifier.run()
                 st.success(lang["classify-success"])

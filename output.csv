@@ -1,11 +1,2 @@
 id,text,result
-564,Gut gefällt mir es am Rhein zu verweilen oder mir mit Freunden auf dem Jakobsberg herum zu treiben,"[1, 7]"
-359,Eigentlich Alles,[8]
-1002,Das die Freunde in der Nähe sind.  Das Bus / Tramstationen in der Nähe sind.,[3]
-389,"Ich finde unsere Wohnlage sehr gut, weil wir sind nicht an einer grossen Strasse und sehr schnell in der Stadt. Ich finde diese Stadt einfach toll!",[12]
-269,"Basel ist eine grosse Stadt, hat aber trotzdem viel grün in der Umgebung.",[5]
-921,Das es im gegensat zu anderen Städten eher klein ist aber genug gross und mir gefällt der Rhein sehr gut.,[12]
-590,"Es ist eine schöne Stadt.  Ich bin hier aufgewachsen, darum kenne ich mich gut aus. Mit dem Velo kommt man überall hin.","[1, 2, 5, 8, 12]"
-167,"Vor allem das Bruderholz weil es so ""grün"" ist. Die Basler Fasnacht und mega gern FCB","[5, 7]"
-581,Rhein  Shopping  Parks/Schwimmbad/Ort zum Trainieren,"[7, 5, 20]"
-134,"Die schöne Alt-Stadt, viel ""Grünland"", Clubs, Cafes, Läden-> in Basel hat es alles was man braucht","[1, 5, 7, 8, 12, 15, 17, 19, 20]"
+1,"The {} application provides a convenient solution for assigning predefined categories to a given list of short texts. To utilize this functionality, you need to provide two types of inputs in MS Excel (xlsx) format: a list of [id, text] records and a list of [id, category] records.\n\nIn the demo mode, you can explore the application without providing any inputs. A sample dataset is provided, allowing you to experience the classification process firsthand. However, please note that in the current version, the number of records that can be classified is currently limited to {} randomly selected from the full dataset. This limitation is implemented to manage costs effectively.\n\nWith {}, you can streamline the categorization process and effortlessly assign categories to your short texts, simplifying your workflow and saving valuable time.",[4]
