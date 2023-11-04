@@ -4,6 +4,10 @@ import json
 from io import BytesIO
 import os
 import socket
+import string
+import csv
+import zipfile
+import random
 
 lang_dict_complete = {}
 
@@ -86,13 +90,6 @@ def download_button(data, download_filename, button_text):
     )
 
 
-def get_var(varname: str):
-    if socket.gethostname().lower() == LOCAL_HOST:
-        return os.environ[varname]
-    else:
-        return st.secrets[varname]
-
-
 def is_valid_json(json_str):
     try:
         json.loads(json_str)
@@ -121,6 +118,71 @@ def get_var(varname: str) -> str:
         return os.environ[varname]
     else:
         return st.secrets[varname]
+
+
+def get_random_word(length=5) -> str:
+    """
+    Generate a random word of a given length.
+
+    This function generates a random word by choosing `length` number of random letters from ASCII letters.
+
+    Parameters:
+    length (int): The length of the random word to generate. Default is 5.
+
+    Returns:
+    str: The generated random word.
+    """
+    # Choose `length` random letters from ascii_letters
+    letters = string.ascii_letters
+    return "".join(random.choice(letters) for _ in range(length))
+
+
+def create_file(file_name: str, columns: list) -> None:
+    """
+    Creates a new file and writes the columns list to the file.
+
+    Parameters:
+    file_name (str): The name of the file to be created.
+    columns (list): The list of columns to be written to the file.
+
+    Returns:
+    None
+    """
+    with open(file_name, "w", newline="") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerow(columns)
+
+
+def append_row(file_name: str, row: list) -> None:
+    """
+    Appends a row to a CSV file.
+
+    Args:
+        file_name (str): The name of the CSV file to append to.
+        row (list): The row to append to the CSV file.
+
+    Returns:
+        None
+    """
+    with open(file_name, "a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerows(row)
+
+
+def zip_files(file_names: list, target_file: str):
+    """
+    Compresses a list of files into a zip file. The zip file will be
+    downloaded to the user's computer if download button is clicked.
+
+    :return: None
+    """
+
+    # Create a new zip file and add files to it
+    with zipfile.ZipFile(target_file, "w") as zipf:
+        for file in file_names:
+            # Add file to the zip file
+            # The arcname parameter avoids storing the full path in the zip file
+            zipf.write(file, arcname=os.path.basename(file))
 
 
 LOCAL_HOST = "liestal"

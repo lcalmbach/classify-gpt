@@ -2,21 +2,22 @@ import streamlit as st
 import pandas as pd
 from streamlit_lottie import st_lottie
 import requests
+import os
 from helper import get_used_languages, init_lang_dict_complete, get_lang
 import gpt_classifier
 
-__version__ = "0.0.3"
+__version__ = "0.1.0"
 __author__ = "Lukas Calmbach"
 __author_email__ = "lcalmbach@gmail.com"
-VERSION_DATE = "2023-07-31"
+VERSION_DATE = "2023-11-04"
 APP_NAME = "ClassifyGPT"
 GIT_REPO = "https://github.com/lcalmbach/classify-gpt"
-
-MAX_RECORDS = 10
-DEMO_CATEGORY_FILE = "./categories.xlsx"
-DEMO_TEXT_FILE = "./2013_F13.xlsx"
+MAX_RECORDS = 10000
+DEMO_CATEGORY_FILE = "./demo_categories.xlsx"
+DEMO_TEXT_FILE = "./demo_texts.xlsx"
 lang = {}
 LOTTIE_URL = "https://lottie.host/1690cd0e-184d-4481-a621-0ddc622fb335/9bUMwArBUr.json"
+selection_options = ["All", "Define an interval", "Random selection"]
 
 
 def get_app_info():
@@ -53,7 +54,7 @@ def get_app_info():
     return info
 
 
-def show_info():
+def show_info(llm_settings):
     """
     This function displays information about the application and the required input format.
     The info is shown in an expander widget.
@@ -61,15 +62,26 @@ def show_info():
     """
 
     with st.expander(lang["info-label"]):
-        text = lang["app-info"].format(APP_NAME, MAX_RECORDS, APP_NAME)
+        # st.write(llm_settings)
+        text = lang["app-info"].format(APP_NAME, 10, APP_NAME)
         st.write(text)
 
 
 def preview_input(df_texts, dic_categories):
-    with st.expander(lang["texts"], expanded=True):
+    """
+    Displays the input data for preview in the Streamlit app.
+
+    Args:
+    - df_texts (pandas.DataFrame): A DataFrame containing the input texts.
+    - dic_categories (dict): A dictionary containing the categories and their corresponding labels.
+
+    Returns:
+    - None
+    """
+    with st.expander(lang["texts"], expanded=False):
         st.write(df_texts)
 
-    with st.expander(lang["categories"], expanded=True):
+    with st.expander(lang["categories"], expanded=False):
         st.write(dic_categories)
 
 
@@ -151,6 +163,7 @@ def get_demo_data():
     df_texts.dropna(inplace=True)
     df_texts.columns = ["id", "text"]
     df_texts["id"] = df_texts["id"].astype(int)
+    df_texts["text"] = df_texts["text"].str.replace(r"[\r\n]", ",", regex=True)
     df_texts.set_index("id", inplace=True)
 
     df_categories = pd.read_excel(DEMO_CATEGORY_FILE)
@@ -158,11 +171,12 @@ def get_demo_data():
     dic_categories = dict(
         zip(list(df_categories["id"]), list(df_categories["category"]))
     )
+
     return df_texts, dic_categories
 
 
 @st.cache_data
-def record_selection(df: pd.DataFrame, no_records: int) -> pd.DataFrame:
+def record_selection(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     """
     This function randomly select a fixed number of records from a pandas DataFrame that needs to be provided as input.
 
@@ -174,7 +188,16 @@ def record_selection(df: pd.DataFrame, no_records: int) -> pd.DataFrame:
         pd.DataFrame: The sampled DataFrame.
     """
     df = df.dropna()
-    return df.sample(n=no_records)
+    if settings["selection_type"] == selection_options[0]:
+        df = df[:MAX_RECORDS]
+    elif settings["selection_type"] == selection_options[1]:
+        df = df[settings["from_rec"] : settings["to_rec"]]
+    elif settings["selection_type"] == selection_options[2]:
+        df = df.sample(n=settings["max_records"])
+
+    df["text"] = df["text"].str.replace(r"[\r\n]", " ", regex=True)
+
+    return df
 
 
 def display_language_selection():
@@ -248,47 +271,40 @@ def get_settings():
     """
     settings = {}
     with st.sidebar.expander(lang["llm_settings"]):
-        settings["model"] = st.selectbox("model", gpt_classifier.MODEL_OPTIONS)
+
+        settings["selection_type"] = st.selectbox(
+            "Selection type",
+            options=selection_options,
+            help=lang['selection_type_help'],
+        )
+        if selection_options.index(settings["selection_type"]) == 0:
+            settings["from_rec"] = 0
+            settings["to_rec"] = MAX_RECORDS
+        elif selection_options.index(settings["selection_type"]) == 1:
+            settings["from_rec"] = st.number_input("From record", 0, MAX_RECORDS, 0, 10)
+            settings["to_rec"] = st.number_input("To record", 0, MAX_RECORDS, 10, 10)
+        elif selection_options.index(settings["selection_type"]) == 2:
+            settings["max_records"] = st.number_input(
+                "Max. number of records", 10, MAX_RECORDS, 10, 10
+            )
+        settings["model"] = st.selectbox(lang['model'], gpt_classifier.MODEL_OPTIONS)
         settings["temperature"] = st.slider(
-            label="Temperature",
+            label=lang['temperature'],
             value=gpt_classifier.DEFAULT_TEMP,
             min_value=0.0,
             max_value=1.0,
             step=0.1,
             help=lang["help_temperature"],
         )
-        settings["top_p"] = st.slider(
-            "top_p",
-            value=gpt_classifier.DEAFULT_TOP_P,
-            min_value=0.0,
-            max_value=1.0,
-            step=0.1,
-            help=lang["help_top_p"],
-        )
         settings["max_tokens"] = st.slider(
-            "Maximum tokens",
+            label=lang['max_number_of_tokens'],
             value=gpt_classifier.DEFAULT_MAX_TOKENS,
             min_value=0,
             max_value=4096,
             step=1,
             help=lang["help_max_tokens"],
         )
-        settings["frequency_penalty"] = st.slider(
-            "Frequency penalty",
-            value=gpt_classifier.DEFAULT_FREQUENCY_PENALTY,
-            min_value=-2.0,
-            max_value=2.0,
-            step=0.1,
-            help=lang["help_presence_penalty"],
-        )
-        settings["presence_penalty"] = st.slider(
-            "Presence penalty",
-            value=gpt_classifier.DEFAULT_PRESENCE_PENALTY,
-            min_value=-2.0,
-            max_value=2.0,
-            step=0.1,
-            help=lang["help_frequency_penalty"],
-        )
+        settings["max_categories"] = 3
 
     return settings
 
@@ -324,40 +340,60 @@ def main() -> None:
     else:
         pass
     display_language_selection()
-    show_info()
     mode_options = lang["mode-options"]
     llm_settings = get_settings()
 
+    show_info(llm_settings)
     sel_mode = st.radio(lang["mode"], options=mode_options)
     if mode_options.index(sel_mode) == 0:
         df_texts, dic_categories = get_demo_data()
     if mode_options.index(sel_mode) == 1:
         df_texts, dic_categories = get_uploaded_files()
+        with st.columns(3)[0]:
+            llm_settings["max_categories"] = st.number_input(
+                lang['max_categories'], 1, 100, 3, 1
+            )
     if mode_options.index(sel_mode) == 2:
         df_texts, dic_categories = get_user_input()
 
+    llm_settings["code_for_no_match"] = st.selectbox(
+        lang["code_for_no_match"],
+        list(dic_categories.keys()),
+        format_func=lambda x: dic_categories[x],
+    )
     if not df_texts.empty and dic_categories:
-        if MAX_RECORDS > 0 and len(df_texts) > MAX_RECORDS:
-            df_texts = record_selection(df_texts, MAX_RECORDS)
-
+        df_texts = record_selection(df_texts, llm_settings)
         preview_input(df_texts, dic_categories)
-
         if not df_texts.empty and dic_categories:
+            if not ("classifier" in st.session_state):
+                st.session_state["classifier"] = gpt_classifier.Classifier()
+            classifier = st.session_state["classifier"]
+            classifier.texts_df = df_texts
+            classifier.category_dic = dic_categories
+            classifier.settings = llm_settings
             if st.button(lang["classify"]):
-                classifier = gpt_classifier.Classifier(
-                    df_texts, dic_categories, llm_settings
-                )
-                with st.spinner(lang["classifying"]):
-                    response_df = classifier.run()
-                st.success(lang["classify-success"])
-                st.write(response_df)
+                placeholder = st.empty()
 
-                st.download_button(
-                    label=lang["download-csv"],
-                    data=response_df.to_csv(sep="\t").encode("utf-8"),
-                    file_name="classified.csv",
-                    mime="text/csv",
-                )
+                with st.spinner(lang["classifying"]):
+                    classifier.run(placeholder)
+                if len(classifier.errors) > 0:
+                    st.warning(
+                        f"{lang['error_message_result']} {','.join(classifier.errors)}"
+                    )
+                else:
+                    st.success(lang["classify-success"])
+
+                if os.path.exists(classifier.output_file_zip):
+                    # Read the zip file as bytes
+                    with open(classifier.output_file_zip, "rb") as fp:
+                        btn = st.download_button(
+                            label=lang['download_results'],
+                            data=fp,
+                            file_name="download.zip",
+                            mime="application/zip",
+                            help=lang['download_help_text'],
+                        )
+
     st.sidebar.markdown(get_app_info(), unsafe_allow_html=True)
 
 

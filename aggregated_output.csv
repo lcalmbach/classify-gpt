@@ -1,0 +1,52 @@
+;category;count;code
+0;-99;19;-99
+1;1;97;Steuern und Gebühren (Abfallgebühren)
+2;2;59;Lebenshaltungskosten
+3;3;198;Wohnkosten, Wohnungsmangel
+4;4;48;Krankenkasse
+5;5;298;Verkehr, Velo, Innenstadt
+6;6;67;Öffentlicher Verkehr
+7;7;161;Parkplätze
+8;8;57;Arbeitsmarkt,Arbeitslosigkeit, Jugend
+9;9;12;Ausbildungs- und Arbeitangebot für Junge
+10;10;53;Freizeit- und Kulturangebot, alternative Kultur
+11;11;11;Industrie, Pharmaindustrie (Abhängigkeit) 
+12;12;5;Bedrohung durch Chemieanlagen
+13;13;3;Finanzlage des Kantons
+14;14;22;Stadtentwicklung
+15;15;189;Sauberkeit, Abfallentsorgung, Littering
+16;16;71;Luftqualität
+17;17;95;Lärm, Fluglärm
+18;18;47;Umweltqualität
+19;19;15;Mentalität, Einstellung
+20;20;69;(Illegale) Ausländer
+21;21;55;Grünflächenangebot
+22;22;27;Integration, Migration
+23;23;310;Kriminalität, öffentliche Sicherheit, Einbrüche, Polizei
+24;24;57;Drogen- und Alkoholprobleme
+25;25;39;Schule und Bildung, Schulsystem
+26;26;24;Gewerbe / Ladensterben, Einkaufstourimus
+27;27;54;Freizeit- und Kulturangebot für Junge
+28;28;46;Kinderbetreuung
+29;29;23;Lebensbedingungen für Behinderte
+30;30;113;Regierung, Verwaltung, Politik
+31;31;30;Gesundheitswesen
+32;32;30;Soziale Ungleichheit
+33;33;53;Bevölkerungsentwicklung und -struktur, Pendler
+34;34;31;Abwanderung
+35;35;12;Erdbeben, Gefahr, Geothermieproj.
+36;36;223;Baustellen
+37;37;58;Jugendgewalt, Gewalt
+38;38;35;Konflikt
+39;40;3;Theaterstreit
+40;41;3;Halbkanton, Zusammenarbeit mit BL
+41;42;8;Zeitung, BAZ
+42;43;4;CHF, Euro
+43;44;13;Attraktivität der Stadt, unbelebt
+44;45;72;Ausländerfragen, Rassismus, Grenzgänger, Nähe zur Grenze
+45;46;28;Abfalltrennung (Recycling, Bioabfall)
+46;47;9;Sozialhilfeempfänger/ Sozialausgaben
+47;48;58;Vandalismus, Bettler
+48;97;9;nichts
+49;98;26;anderes
+50;99;5;weiss nicht, k.A.

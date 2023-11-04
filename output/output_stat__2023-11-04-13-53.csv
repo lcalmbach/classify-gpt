@@ -1,0 +1,21 @@
+;cat_id;count;cat_code
+0;1;7;Rheinufer (inkl. Birsköpfli, Hafenareal, usw.), Birs, Wiese
+1;2;2;Kurze Wege
+2;3;14;Öffentlicher Verkehr
+3;4;6;Viele Ladengeschäfte, Restaurants
+4;5;11;Parks, Plätze, Grünflächen
+5;6;4;Menschen
+6;7;7;Freizeitangebote (Sport, Kulturelle Anlässe etc.)
+7;8;5;Alles
+8;9;1;Anderes
+9;11;2;Schule/ Ausbildung/ Arbeitsmöglichkeiten
+10;12;10;Stadt (Innenstadt, Grösse der Stadt, Basel ist schön) 
+11;13;1;Riehen
+12;14;1;Sicherheit
+13;15;3;Infrastruktur
+14;16;2;Kulturelle Vielfalt
+15;17;3;Lebens- und Wohnstandard
+16;18;1;Ruhe
+17;19;1;Weltoffenheit, Gerechtigkeitssinn, Demokratie
+18;20;1;Sauberkeit
+19;999;1;Keine Angabe
